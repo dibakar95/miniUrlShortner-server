@@ -8,6 +8,7 @@ A robust, production-ready URL Shortener API built with Node.js, Express, and Po
 - **Redirection**: Instant 302 redirects to original URLs.
 - **Analytics**: Track click counts for every link.
 - **Expiration**: Links can self-destruct after a set time.
+- **Custom Aliases**: Users can choose their own short codes (e.g., `/my-link`).
 - **Rate Limiting**: Protected against abuse (100 reqs / 15 min).
 - **Documentation**: Interactive API docs via Swagger UI.
 - **Docker Ready**: (Coming soon)
@@ -61,7 +62,7 @@ Visit `http://localhost:3000/api-docs` to see the interactive Swagger UI.
 ### Key Endpoints:
 
 - `POST /api/shorten`: Create a short link.
-  - Body: `{ "original_url": "https://google.com", "expiresIn": 24 }`
+  - Body: `{ "original_url": "https://google.com", "expiresIn": 24, "alias": "my-google" }`
 - `GET /:code`: Redirect to original URL.
 - `GET /api/analytics/:code`: View click stats.
 
