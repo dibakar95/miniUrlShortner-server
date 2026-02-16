@@ -46,7 +46,8 @@ const createShortUrl = async (req, res) => {
     const query = `INSERT INTO urls (original_url, short_code, expires_at) VALUES ($1, $2, $3)`;
     await db.query(query, [original_url, short_code, expirationDate]);
 
-    res.success({ short_url: `http://localhost:3000/${short_code}` });
+    const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+    res.success({ short_url: `${baseUrl}/${short_code}` });
   } catch (err) {
     // Handle duplicate alias
     if (err.code === "23505") {
