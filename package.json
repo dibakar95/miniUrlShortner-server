@@ -5,6 +5,7 @@
   "scripts": {
     "test": "jest",
     "start": "node src/app.js",
+    "db:init": "node src/scripts/initDb.js",
     "dev": "nodemon src/app.js"
   },
   "keywords": [],
