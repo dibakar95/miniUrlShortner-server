@@ -2,7 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpecs = require("./config/swagger");
-const urlRoutes = require("./routes/urlRoutes");
+
 const responseHandler = require("./middlewares/responseHandler");
 
 dotenv.config();
@@ -19,8 +19,15 @@ app.use(responseHandler);
 // Serve Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
+const apiRoutes = require("./routes/apiRoutes");
+const indexRoutes = require("./routes/indexRoutes");
+
+// ...
+
 // Mount the routes
-app.use("/api", urlRoutes);
+app.use("/api", apiRoutes);
+app.use("/", indexRoutes);
+
 app.get("/", (req, res) => {
   res.send("URL Shortener API is running...");
 });

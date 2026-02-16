@@ -114,15 +114,15 @@ describe("URL Shortener API", () => {
         });
       const shortCode = createRes.body.data.short_url.split("/").pop();
 
-      // 2. Request the short code
-      const res = await request(app).get(`/api/${shortCode}`);
+      // 2. Request the short code (Root path)
+      const res = await request(app).get(`/${shortCode}`);
 
       expect(res.statusCode).toEqual(302);
       expect(res.headers.location).toBe("https://wikipedia.org");
     });
 
     it("should return 404 for invalid code", async () => {
-      const res = await request(app).get("/api/invalid-code-123");
+      const res = await request(app).get("/invalid-code-123");
       expect(res.statusCode).toEqual(404);
     });
   });

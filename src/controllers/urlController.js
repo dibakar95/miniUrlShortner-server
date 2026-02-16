@@ -1,8 +1,14 @@
+// Holds the business logic for URL operations
+// Controller: urlController.js
 const db = require("../config/db");
 
-// Controller: urlController.js
-// Holds the business logic for URL operations
-
+/**
+ * Controller: createShortUrl
+ * Creates a short URL
+ * @param {*} req   - Request object
+ * @param {*} res   - Response object
+ * @returns         - JSON response
+ */
 const createShortUrl = async (req, res) => {
   const { original_url, expiresIn, alias } = req.body;
 
@@ -52,6 +58,13 @@ const createShortUrl = async (req, res) => {
   }
 };
 
+/**
+ * Controller: redirectToOriginal
+ * Redirects to the original URL
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 const redirectToOriginal = async (req, res) => {
   const { code } = req.params;
 
@@ -72,6 +85,13 @@ const redirectToOriginal = async (req, res) => {
   res.redirect(result.rows[0].original_url);
 };
 
+/**
+ * Controller: getAnalytics
+ * Returns analytics for a short URL
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 const getAnalytics = async (req, res) => {
   const { code } = req.params;
 
