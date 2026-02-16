@@ -4,23 +4,52 @@ const db = require("../config/db");
 // Holds the business logic for URL operations
 
 const createShortUrl = async (req, res) => {
-  const { original_url, expiresIn } = req.body;
+  const { original_url, expiresIn, alias } = req.body;
 
   // Validate input (is it a valid URL?)
   if (!original_url) {
     return res.error("Original URL is required", 400);
   }
-  // Generate a short code (random string?)
-  const short_code = Math.random().toString(36).substring(2, 8);
+
+  let short_code;
+
+  if (alias) {
+    // 1. Custom Alias Validation
+    if (alias.length > 20) {
+      return res.error("Alias must be 20 characters or less", 400);
+    }
+    if (!/^[a-zA-Z0-9-_]+$/.test(alias)) {
+      return res.error(
+        "Alias can only contain letters, numbers, hyphens, and underscores",
+        400,
+      );
+    }
+    short_code = alias;
+  } else {
+    // 2. Generate random code
+    short_code = Math.random().toString(36).substring(2, 8);
+  }
+
   // expirationDate = current time + expiresIn (in hours)
   const expirationDate = expiresIn
     ? new Date(Date.now() + expiresIn * 3600000)
     : null;
-  // Insert into database
-  const query = `INSERT INTO urls (original_url, short_code, expires_at) VALUES ($1, $2, $3)`;
-  await db.query(query, [original_url, short_code, expirationDate]);
 
-  res.success({ short_url: `http://localhost:3000/${short_code}` });
+  try {
+    // Insert into database
+    const query = `INSERT INTO urls (original_url, short_code, expires_at) VALUES ($1, $2, $3)`;
+    await db.query(query, [original_url, short_code, expirationDate]);
+
+    res.success({ short_url: `http://localhost:3000/${short_code}` });
+  } catch (err) {
+    // Handle duplicate alias
+    if (err.code === "23505") {
+      // Postgres unique_violation
+      return res.error("Alias is already taken", 400);
+    }
+    console.error(err);
+    res.error("Internal Server Error", 500);
+  }
 };
 
 const redirectToOriginal = async (req, res) => {

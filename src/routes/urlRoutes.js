@@ -30,6 +30,9 @@ const {
  *                 type: string
  *               expiresIn:
  *                 type: integer
+ *               alias:
+ *                 type: string
+ *                 description: Custom short code (optional, max 20 chars)
  *     responses:
  *       200:
  *         description: Success

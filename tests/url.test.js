@@ -38,10 +38,15 @@ describe("URL Shortener API", () => {
 
     it("should return 429 if too many requests", async () => {
       // Send 6 requests to trigger the limit (limit is 5 in test)
+      // Use a unique IP to avoid affecting other tests
+      const testIp = "192.168.1.50";
       for (let i = 0; i < 6; i++) {
-        const res = await request(app).post("/api/shorten").send({
-          original_url: "https://jestjs.io",
-        });
+        const res = await request(app)
+          .post("/api/shorten")
+          .set("X-Forwarded-For", testIp) // Spoof IP
+          .send({
+            original_url: "https://jestjs.io",
+          });
 
         if (i === 5) {
           expect(res.statusCode).toEqual(429);
@@ -51,6 +56,50 @@ describe("URL Shortener API", () => {
           );
         }
       }
+    });
+
+    it("should create a custom alias", async () => {
+      const res = await request(app)
+        .post("/api/shorten")
+        .set("X-Forwarded-For", "10.0.0.5")
+        .send({
+          original_url: "https://twitter.com",
+          alias: "my-twitter",
+        });
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.data.short_url).toContain("my-twitter");
+    });
+
+    it("should reject invalid alias characters", async () => {
+      const res = await request(app)
+        .post("/api/shorten")
+        .set("X-Forwarded-For", "10.0.0.6")
+        .send({
+          original_url: "https://google.com",
+          alias: "invalid alias!",
+        });
+      expect(res.statusCode).toEqual(400);
+      expect(res.body.message).toContain("letters, numbers, hyphens");
+    });
+
+    it("should reject duplicate alias", async () => {
+      // Use a unique IP for this test flow
+      const ip = "10.0.0.7";
+      // First create
+      await request(app).post("/api/shorten").set("X-Forwarded-For", ip).send({
+        original_url: "https://fb.com",
+        alias: "popular-link",
+      });
+      // Try creating again
+      const res = await request(app)
+        .post("/api/shorten")
+        .set("X-Forwarded-For", ip)
+        .send({
+          original_url: "https://google.com",
+          alias: "popular-link",
+        });
+      expect(res.statusCode).toEqual(400);
+      expect(res.body.message).toBe("Alias is already taken");
     });
   });
 
