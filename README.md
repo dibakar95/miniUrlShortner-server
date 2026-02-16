@@ -25,8 +25,8 @@ A robust, production-ready URL Shortener API built with Node.js, Express, and Po
 1.  **Clone the repo:**
 
     ```bash
-    git clone https://github.com/yourusername/mini-url-shortener.git
-    cd mini-url-shortener
+    git clone https://github.com/yourusername/miniUrlShortner-server.git
+    cd miniUrlShortner-server
     ```
 
 2.  **Install dependencies:**
