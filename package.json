@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "start": "node src/app.js",
     "dev": "nodemon src/app.js"
   },
   "keywords": [],
