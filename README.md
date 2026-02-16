@@ -1,6 +1,7 @@
 # Mini URL Shortener API 🔗
 
 A robust, production-ready URL Shortener API built with Node.js, Express, and PostgreSQL.
+**[View Live Demo](https://miniurlshortner-server.onrender.com)**
 
 ## 🚀 Features
 
@@ -57,7 +58,7 @@ A robust, production-ready URL Shortener API built with Node.js, Express, and Po
 
 ## 📖 API Documentation
 
-Visit `http://localhost:3000/api-docs` to see the interactive Swagger UI.
+Visit `http://localhost:3000/api-docs` (Local) or `https://miniurlshortner-server.onrender.com/api-docs` (Live) to see the interactive Swagger UI.
 
 ### Key Endpoints:
 
