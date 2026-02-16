@@ -7,7 +7,7 @@
 -- Think about constraints (NOT NULL, UNIQUE, DEFAULT)
 -- -------------------------------------------------------------
 
-CREATE TABLE urls (
+CREATE TABLE IF NOT EXISTS urls (
     id SERIAL PRIMARY KEY,
 
     -- 1. Store the original long URL.
