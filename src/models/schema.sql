@@ -1,11 +1,3 @@
--- -------------------------------------------------------------
--- MENTORSHIP CHALLENGE: Database Schema Design
--- -------------------------------------------------------------
--- Instructions: 
--- Replace the comments below with the actual SQL column definitions.
--- Think about data types (VARCHAR, TEXT, INT, TIMESTAMP, etc.)
--- Think about constraints (NOT NULL, UNIQUE, DEFAULT)
--- -------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS urls (
     id SERIAL PRIMARY KEY,
@@ -23,16 +15,11 @@ CREATE TABLE IF NOT EXISTS urls (
 );
 
 
--- -------------------------------------------------------------
--- ADVANCED CHALLENGE (Optional)
--- If we want to track "Geo Location" or "Time of Click" later,
--- a simple 'click_count' in the 'urls' table won't be enough.
--- We would need a separate 'clicks' table.
--- -------------------------------------------------------------
 
--- CREATE TABLE clicks (
---     id SERIAL PRIMARY KEY,
---     url_id INTEGER REFERENCES urls(id),
---     clicked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     ip_address VARCHAR(45)
--- );
+CREATE TABLE IF NOT EXISTS clicks (
+    id SERIAL PRIMARY KEY,
+    url_id INTEGER REFERENCES urls(id),
+    clicked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_address VARCHAR(45),
+    country VARCHAR(10)
+);

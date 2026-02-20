@@ -1,7 +1,7 @@
 // Holds the business logic for URL operations
 // Controller: urlController.js
 const db = require("../config/db");
-
+const geoip = require("geoip-lite");
 /**
  * Controller: createShortUrl
  * Creates a short URL
@@ -69,20 +69,36 @@ const createShortUrl = async (req, res) => {
 const redirectToOriginal = async (req, res) => {
   const { code } = req.params;
 
-  // SELECT original_url FROM urls WHERE short_code = code
-  const query = `SELECT original_url FROM urls WHERE short_code = $1`;
+  // SELECT id, original_url, expires_at FROM urls WHERE short_code = code
+  const query = `SELECT id, original_url, expires_at FROM urls WHERE short_code = $1`;
   const result = await db.query(query, [code]);
   // If not found, res.status(404).json(...)
   if (result.rows.length === 0) {
     return res.error("URL not found", 404);
   }
-  if (result.rows[0].expires_at < new Date()) {
+  if (result.rows[0].expires_at && result.rows[0].expires_at < new Date()) {
     return res.error("URL expired", 404);
   }
-  // Increment click count
+  // Increment click count (Background)
   const updateQuery = `UPDATE urls SET click_count = click_count + 1 WHERE short_code = $1`;
-  await db.query(updateQuery, [code]);
-  // If found, res.redirect(original_url)
+  db.query(updateQuery, [code]).catch((err) =>
+    console.error("Error updating click count:", err),
+  );
+
+  // Insert into clicks table (Background)
+  const urlId = result.rows[0].id;
+  const ipAddress =
+    req.headers["x-forwarded-for"] || req.socket?.remoteAddress || req.ip;
+  if (urlId) {
+    const geoIp = geoip.lookup(ipAddress);
+    const country = geoIp ? geoIp.country : "Unknown";
+    const insertClickQuery = `INSERT INTO clicks (url_id, ip_address, country) VALUES ($1, $2, $3)`;
+    db.query(insertClickQuery, [urlId, ipAddress, country]).catch((err) =>
+      console.error("Error inserting click records:", err),
+    );
+  }
+
+  // If found, res.redirect(original_url) immediately
   res.redirect(result.rows[0].original_url);
 };
 
@@ -103,15 +119,41 @@ const getAnalytics = async (req, res) => {
   if (result.rows.length === 0) {
     return res.error("URL not found", 404);
   }
-  if (result.rows[0].expires_at < new Date()) {
+  if (result.rows[0].expires_at && result.rows[0].expires_at < new Date()) {
     return res.error("URL expired", 404);
   }
+
+  // Get clicks for the last 10 clicks
+  const urlId = result.rows[0].id;
+  const clicksQuery = `SELECT clicked_at, ip_address, country FROM clicks WHERE url_id = $1 ORDER BY clicked_at DESC LIMIT 10`;
+  const clicksPromise = db.query(clicksQuery, [urlId]);
+
+  // Execute the Geography Query
+  const geographyQuery = `SELECT country, COUNT(*) as count FROM clicks WHERE url_id = $1 GROUP BY country`;
+  const geographyPromise = db.query(geographyQuery, [urlId]);
+
+  const [clicksResult, geographyResult] = await Promise.all([
+    clicksPromise,
+    geographyPromise,
+  ]);
+
+  // Transform the rows array into an object: { "US": 100, "UK": 25, "IN": 25 }
+  // We use Number() because Postgres COUNT returns a string.
+  const geographyStats = geographyResult.rows.reduce((acc, row) => {
+    // If the country is null or empty, we'll label it "Unknown" (though we used "Unknown" earlier)
+    const countryKey = row.country || "Unknown";
+    acc[countryKey] = Number(row.count);
+    return acc;
+  }, {});
+
   res.success({
     original_url: result.rows[0].original_url,
     short_code: result.rows[0].short_code,
     created_at: result.rows[0].created_at,
     expires_at: result.rows[0].expires_at,
     click_count: result.rows[0].click_count,
+    recent_clicks: clicksResult.rows,
+    geography: geographyStats,
   });
 };
 
